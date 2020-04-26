@@ -36,22 +36,28 @@ Run apt-get update && apt-get install -y \
 RUN cd / \
     && git clone --jobs=8 --recursive https://github.com/riscv/riscv-gnu-toolchain \
     && cd riscv-gnu-toolchain \
-    && ./configure --prefix=/opt/riscv --with-arch=rv32ia --with-abi=ilp32 \
-    && make -j8 linux \
+    && ./configure --prefix=/opt/riscv --with-arch=rv32i --with-abi=ilp32 \
+    && make -j8 \
     && cd / \
     && rm -rf riscv-gnu-toolchain
-
-RUN apt-get install -y pkg-config glibc-source libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev
 
 RUN cd / \
     && git clone https://git.qemu.org/git/qemu.git \
     && cd qemu \
-    && ./configure --target-list=riscv32-linux-user \
+    && ./configure --target-list=riscv32-softmmu \
     && make -j8 install \
     && cd / \
     && rm -rf qemu
 
-RUN ln -s /opt/riscv/sysroot/lib/ld-linux-riscv32-ilp32.so.1 /lib/ld-linux-riscv32-ilp32.so.1
+# RUN ln -s /opt/riscv/sysroot/lib/ld-linux-riscv32-ilp32.so.1 /lib/ld-linux-riscv32-ilp32.so.1
+
+RUN apt-get install -y device-tree-compiler openocd
+RUN git clone https://github.com/riscv/riscv-isa-sim.git
+RUN cd riscv-isa-sim \
+    && mkdir build \
+    && cd build \
+    && ../configure --prefix=/opt/riscv \
+    && make install
 
 USER developer
 WORKDIR /home/developer
